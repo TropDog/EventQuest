@@ -10,4 +10,10 @@ export default () => ({
       10,
     ),
   },
+  coordinator: {
+    accessExpiresInDays: parseInt(
+      process.env.COORDINATOR_ACCESS_EXPIRES_IN_DAYS ?? '30',
+      10,
+    ),
+  },
 });

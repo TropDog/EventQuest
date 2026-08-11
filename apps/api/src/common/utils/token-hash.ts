@@ -1,7 +1,11 @@
 import { createHash, randomBytes } from 'crypto';
 
-export function generateRefreshToken(): string {
+export function generateOpaqueToken(): string {
   return randomBytes(32).toString('base64url');
+}
+
+export function generateRefreshToken(): string {
+  return generateOpaqueToken();
 }
 
 export function hashToken(token: string): string {
