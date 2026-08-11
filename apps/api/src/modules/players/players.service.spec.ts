@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   ConflictException,
   NotFoundException,
   UnauthorizedException,
@@ -115,20 +114,20 @@ describe('PlayersService', () => {
       expect(createCall.guestTokenHash).not.toBe(result.guestToken);
     });
 
-    it('rejects team mode events until team selection is implemented', async () => {
+  it('allows team mode events to create a player without assigning a team', async () => {
       playersRepository.findEventById.mockResolvedValue({
         ...event,
         gameMode: GameMode.TEAMS,
       });
+      playersRepository.createPlayerIfJoinAllowed.mockResolvedValue(player);
 
-      await expect(
-        playersService.joinEvent('event-1', {
-          nickname: 'GuestOne',
-          termsAccepted: true,
-        }),
-      ).rejects.toBeInstanceOf(BadRequestException);
+      const result = await playersService.joinEvent('event-1', {
+        nickname: 'GuestOne',
+        termsAccepted: true,
+      });
 
-      expect(playersRepository.createPlayerIfJoinAllowed).not.toHaveBeenCalled();
+      expect(result.player.nickname).toBe('GuestOne');
+      expect(playersRepository.createPlayerIfJoinAllowed).toHaveBeenCalled();
     });
   });
 

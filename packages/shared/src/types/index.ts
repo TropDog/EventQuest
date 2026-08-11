@@ -24,6 +24,13 @@ export type {
   PaymentWebhookResponse,
 } from './package-purchase.js';
 export type {
+  ChangeTeamNameResponse,
+  ConfigureTeamsResponse,
+  JoinTeamResponse,
+  ListTeamsResponse,
+  TeamSummary,
+} from './team.js';
+export type {
   CloseEventResponse,
   CreateEventResponse,
   EventQrResponse,

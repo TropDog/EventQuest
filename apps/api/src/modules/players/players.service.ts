@@ -1,11 +1,10 @@
 import {
-  BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { EventStatus, GameMode } from '@prisma/client';
+import { EventStatus } from '@prisma/client';
 import type {
   JoinEventResponse,
   PlayerProfile,
@@ -21,7 +20,6 @@ import { toJoinEventContext, toPlayerProfile } from './dto/player-profile.mapper
 import {
   isEventJoinable,
   isParticipantLimitReached,
-  isTeamModeRequired,
   PlayersRepository,
 } from './players.repository';
 import { PlayerSessionPayload } from './player.types';
@@ -56,12 +54,6 @@ export class PlayersService {
     const event = await this.playersRepository.findEventById(eventId);
     if (!event) {
       throw new NotFoundException('Event not found');
-    }
-
-    if (isTeamModeRequired(event.gameMode)) {
-      throw new BadRequestException(
-        'Team selection is required for team mode events',
-      );
     }
 
     const guestToken = generateOpaqueToken();

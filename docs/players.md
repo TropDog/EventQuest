@@ -103,11 +103,12 @@ The following choices are documented implementation defaults for the current pla
 - **Duplicate nicknames within the same event are allowed** unless a future requirement explicitly forbids them.
 - **Rejoin creates a new player**: a new join request always creates a new `Player` record and a new guest token, even when the nickname differs from a prior join. Prior sessions remain valid until removed by a future lifecycle/cleanup rule.
 
-### Team mode deferral
+### Team mode join flow
 
-- Team selection belongs to the **Teams** implementation phase.
-- MVP player join supports **SOLO mode fully**.
-- **`TEAMS` mode join is blocked** with `400 Bad Request` until team selection is implemented.
+- Team selection is implemented in the **Teams** phase as a two-step flow:
+  1. `POST /events/:eventId/players` — creates the player and guest session (team mode allowed; `teamId` remains `null`).
+  2. `POST /events/:eventId/teams/:teamId/join` — assigns the player to an available team.
+- `GET /events/:eventId/teams` is available without authentication for **ACTIVE** joinable events (pre-session team selection UI). Authenticated organizer, coordinator, and player access is also supported.
 
 ### Room code lookup
 

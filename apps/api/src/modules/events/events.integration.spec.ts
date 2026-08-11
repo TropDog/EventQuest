@@ -45,6 +45,7 @@ describe('Events (integration)', () => {
   afterEach(async () => {
     jest.restoreAllMocks();
     await prisma.player.deleteMany();
+    await prisma.team.deleteMany();
     await prisma.coordinatorAccess.deleteMany();
     await prisma.event.deleteMany();
     await prisma.packagePurchase.deleteMany();

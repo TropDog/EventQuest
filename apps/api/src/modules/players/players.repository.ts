@@ -3,7 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { Event, EventStatus, GameMode, Player } from '@prisma/client';
+import { Event, EventStatus, Player } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 
 type LockedEventRow = {
@@ -31,6 +31,12 @@ export class PlayersRepository {
   countPlayersByEventId(eventId: string): Promise<number> {
     return this.prisma.player.count({
       where: { eventId },
+    });
+  }
+
+  countPlayersByTeamId(teamId: string): Promise<number> {
+    return this.prisma.player.count({
+      where: { teamId },
     });
   }
 
@@ -125,8 +131,4 @@ export function isParticipantLimitReached(
   }
 
   return playerCount >= participantLimit;
-}
-
-export function isTeamModeRequired(gameMode: GameMode): boolean {
-  return gameMode === GameMode.TEAMS;
 }

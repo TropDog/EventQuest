@@ -11,6 +11,6 @@ import { PlayerSessionGuard } from './guards/player-session.guard';
 @Module({
   controllers: [JoinController, EventPlayersController, PlayersController],
   providers: [PlayersService, PlayersRepository, PlayerSessionGuard],
-  exports: [PlayersService, PlayerSessionGuard],
+  exports: [PlayersService, PlayersRepository, PlayerSessionGuard],
 })
 export class PlayersModule {}

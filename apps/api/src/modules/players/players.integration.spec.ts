@@ -35,6 +35,7 @@ describe('PlayersController (integration)', () => {
 
   afterEach(async () => {
     await prisma.player.deleteMany();
+    await prisma.team.deleteMany();
     await prisma.coordinatorAccess.deleteMany();
     await prisma.event.deleteMany();
     await prisma.packagePurchase.deleteMany();
@@ -266,5 +267,19 @@ describe('PlayersController (integration)', () => {
       );
       expect(stored?.guestTokenHash).not.toBe(response.body.guestToken);
     }
+  });
+
+  it('allows players to join team mode events before selecting a team', async () => {
+    const event = await createJoinableEvent({ gameMode: GameMode.TEAMS });
+
+    const joinResponse = await request(app.getHttpServer())
+      .post(`/events/${event.id}/players`)
+      .send({
+        nickname: 'TeamModePlayer',
+        termsAccepted: true,
+      })
+      .expect(201);
+
+    expect(joinResponse.body.player.teamId).toBeNull();
   });
 });
