@@ -47,7 +47,7 @@ enum SpecialEventType {
 
 model OrganizerAccount {
   id              String   @id @default(cuid())
-  email           String
+  email           String   @unique
   passwordHash    String   @map("password_hash")
   termsAcceptedAt DateTime @map("terms_accepted_at")
   createdAt       DateTime @default(now()) @map("created_at")
@@ -56,8 +56,24 @@ model OrganizerAccount {
   packagePurchases PackagePurchase[]
   events           Event[]
   specialEvents    SpecialEvent[] @relation("SpecialEventOrganizer")
+  refreshTokens    OrganizerRefreshToken[]
 
   @@map("organizer_accounts")
+}
+
+model OrganizerRefreshToken {
+  id          String    @id @default(cuid())
+  organizerId String    @map("organizer_id")
+  tokenHash   String    @unique @map("token_hash")
+  expiresAt   DateTime  @map("expires_at")
+  revokedAt   DateTime? @map("revoked_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  organizer OrganizerAccount @relation(fields: [organizerId], references: [id], onDelete: Cascade)
+
+  @@index([organizerId])
+  @@index([expiresAt])
+  @@map("organizer_refresh_tokens")
 }
 
 model PackagePurchase {

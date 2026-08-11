@@ -25,7 +25,14 @@ The architecture also uses WebSockets for realtime functionality.
 Uses:
 
 - JWT access token,
-- refresh token.
+- server-tracked refresh token.
+
+Refresh-token persistence:
+
+- only a hash is stored in `OrganizerRefreshToken`;
+- refresh tokens have an expiry;
+- refresh tokens can be revoked server-side;
+- revoked/expired refresh tokens are rejected.
 
 ### Coordinator
 
@@ -71,7 +78,15 @@ Public.
 
 ### Authentication after registration
 
-The exact response/session behavior is not specified by the Architecture and should be finalized in the feature specification.
+MVP implementation: successful registration returns the same auth session shape as login:
+
+- `organizer` public profile,
+- JWT `accessToken`,
+- server-tracked opaque `refreshToken` for subsequent refresh/logout.
+
+This supports the documented organizer UI flow where registration success leads directly to an authenticated session.
+
+See `auth.md` — **Organizer Auth — MVP Implementation Notes** for the interim response fields.
 
 ---
 
@@ -89,15 +104,31 @@ Public.
 - issue access token/session,
 - establish refresh-token flow.
 
+### MVP success response
+
+Same shape as registration. See `auth.md` — **Organizer Auth — MVP Implementation Notes**.
+
 ---
 
 ## POST `/auth/logout`
 
-Terminate organizer session.
+Terminate the organizer refresh-token session presented for logout.
 
 ### Actor
 
 Organizer.
+
+### Behavior
+
+- authenticate the organizer session as required by the chosen transport;
+- revoke the corresponding server-tracked refresh-token record;
+- subsequent use of that refresh token must be rejected.
+
+### MVP request/response
+
+- Request body: `{ "refreshToken": "string" }`
+- Authorization: Bearer access token
+- Success response: `{ "success": true }`
 
 ---
 
@@ -109,6 +140,21 @@ Refresh organizer authentication.
 
 Organizer session.
 
+### Behavior
+
+- validate the presented refresh token;
+- reject it if expired;
+- reject it if revoked;
+- resolve the organizer associated with the refresh-token record;
+- issue a new access token.
+
+### MVP implementation notes
+
+- Request body: `{ "refreshToken": "string" }`
+- Success response: same shape as login/register.
+- **No refresh-token rotation** in MVP; the same refresh token remains valid until expiry, revocation, or logout.
+- Refresh-token rotation policy remains undefined beyond this MVP behavior.
+
 ---
 
 ## GET `/auth/me`
@@ -119,7 +165,9 @@ Return the authenticated organizer identity.
 
 Organizer.
 
----
+### MVP success response
+
+Public `organizer` profile only (no tokens). See `auth.md` — **Organizer Auth — MVP Implementation Notes**.
 
 # 3. Packages and Payments
 

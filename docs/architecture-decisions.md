@@ -76,7 +76,10 @@ Each event has dedicated realtime channels.
 
 - email/password,
 - JWT access token,
-- refresh token.
+- server-tracked refresh token,
+- refresh token stored only as a hash,
+- refresh token has expiry and revocation state,
+- organizer email is unique.
 
 ### Coordinator
 
@@ -92,6 +95,37 @@ Each event has dedicated realtime channels.
 - token associated with player and event.
 
 Do not introduce account creation for coordinators or players unless explicitly requested.
+
+## ADR-005A — Server-Tracked Organizer Refresh Tokens
+
+**Decision:** Organizer refresh tokens are persisted server-side as hashed token records.
+
+### OrganizerRefreshToken
+
+Each record contains:
+
+```text
+id
+organizer_id
+token_hash
+expires_at
+revoked_at
+created_at
+```
+
+Rules:
+
+- only the hash is persisted,
+- refresh tokens expire,
+- refresh tokens can be revoked,
+- revoked/expired tokens are rejected,
+- logout revokes the corresponding refresh-token session,
+- `token_hash` is unique,
+- `OrganizerAccount.email` is unique.
+
+**Reason:** The MVP explicitly requires refresh-token revocation. A purely stateless refresh JWT cannot reliably satisfy logout/revocation semantics without a server-side state mechanism.
+
+The exact refresh-token transport/DTO shape and rotation policy are not defined by this ADR.
 
 ## ADR-006 — Server-Side Scoring
 

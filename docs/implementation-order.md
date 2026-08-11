@@ -59,14 +59,17 @@ Implement:
 
 1. organizer registration,
 2. organizer login,
-3. organizer logout,
-4. refresh token,
-5. organizer identity,
-6. organizer authorization,
-7. coordinator access tokens,
-8. player guest sessions.
+3. organizer refresh-token persistence and issuance,
+4. organizer refresh-token validation,
+5. organizer logout and refresh-token revocation,
+6. organizer identity,
+7. organizer authorization,
+8. coordinator access tokens,
+9. player guest sessions.
 
 Access must be established before protected business flows are implemented.
+
+Organizer refresh-token persistence is a documented domain requirement and must use the `OrganizerRefreshToken` model defined in `DOMAIN_MODEL.md` / `ERD.md`.
 
 ## Phase 3 — Packages and Payments
 

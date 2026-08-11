@@ -377,8 +377,11 @@ Cleanup is performed by scheduled jobs.
 Organizer:
 
 - email/password,
-- JWT,
-- refresh token,
+- JWT access token,
+- server-tracked refresh token,
+- refresh token stored only as a hash,
+- refresh token expiry and revocation,
+- unique email,
 - access limited to owned events.
 
 Coordinator:

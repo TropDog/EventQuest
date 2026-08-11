@@ -194,8 +194,28 @@ multiplier starts_at ends_at created_by_coordinator_access_id
 created_by_organizer_id created_at \## event_summaries id event_id
 ai_summary_text report_url media_package_url generated_at downloaded_at
 created_at \## audit_logs id event_id actor_type actor_id action
-metadata_json created_at \# 10. Autoryzacja i Kontrola Dostępu \## 10.1
+metadata_json created_at \# 10A. Organizer Refresh Token Persistence
+Organizer refresh tokens are persisted server-side in `organizer_refresh_tokens`.
+
+Fields:
+- id
+- organizer_id FK → organizer_accounts.id
+- token_hash
+- expires_at
+- revoked_at nullable
+- created_at
+
+Constraints:
+- token_hash UNIQUE
+- organizer email UNIQUE
+- expired or revoked refresh tokens are rejected
+- logout revokes the corresponding refresh-token session
+
+Only the token hash is persisted.
+
+# 10. Autoryzacja i Kontrola Dostępu \## 10.1
 Organizator Mechanizm: Email + password JWT access token Refresh token
+Refresh token: server-tracked in organizer_refresh_tokens; only token_hash is persisted; expires_at and revoked_at are enforced server-side. Organizer email is UNIQUE. Logout revokes the corresponding refresh-token session; expired/revoked refresh tokens are rejected.
 Organizator ma dostęp tylko do wydarzeń przypisanych do swojego konta.
 Guard: OrganizerAuthGuard EventOwnerGuard \## 10.2 Prowadzący /
 Koordynator Mechanizm: Magic link token Token zapisany jako hash w bazie

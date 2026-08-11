@@ -18,6 +18,18 @@ The Architecture defines endpoint paths and responsibilities but does not fully 
 
 These should be finalized per feature.
 
+For organizer auth specifically, the refresh-token persistence decision is resolved:
+- refresh tokens are server-tracked in `OrganizerRefreshToken`,
+- only token hashes are persisted,
+- expiry and revocation are server-side,
+- logout revokes the corresponding refresh-token session.
+
+Still open:
+- exact refresh-token transport,
+- exact refresh/logout DTOs,
+- refresh-token rotation policy,
+- exact access/refresh token TTL values as product rules (MVP defaults are environment-configured; see `auth.md` — **Organizer Auth — MVP Implementation Notes**).
+
 ## 2. Exact RankingSnapshot Schema
 
 `RankingSnapshot` is defined as a domain entity and caching mechanism, but the exact physical schema is not fully specified.
@@ -104,3 +116,51 @@ When an open question becomes necessary for implementation:
 2. record the decision,
 3. update the relevant documentation,
 4. only then encode the rule in code.
+
+## Resolved Decision — Organizer Refresh Tokens
+
+The organizer refresh-token persistence gap identified during Auth implementation is resolved.
+
+### Decision
+
+Use a dedicated `OrganizerRefreshToken` entity/table related to `OrganizerAccount`.
+
+Fields:
+
+```text
+id
+organizer_id
+token_hash
+expires_at
+revoked_at
+created_at
+```
+
+Rules:
+
+- only token hashes are persisted,
+- token hashes are unique,
+- refresh tokens expire,
+- refresh tokens can be revoked,
+- revoked/expired refresh tokens are rejected,
+- logout revokes the corresponding refresh-token session.
+
+Also enforce:
+
+```text
+OrganizerAccount.email = UNIQUE
+```
+
+This decision is now reflected in:
+
+- `DOMAIN_MODEL.md`
+- `ERD.md`
+- `auth.md`
+- `API_SPEC.md`
+- `IMPLEMENTATION_PLAN.md`
+- `MVP_BACKLOG.md`
+- `architecture-decisions.md`
+- `architecture.md`
+- `project-overview.md`
+
+Do not treat organizer refresh-token persistence or organizer email uniqueness as open requirements anymore.

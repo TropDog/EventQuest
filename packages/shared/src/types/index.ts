@@ -1,3 +1,5 @@
-// Shared types will be defined here during domain foundation.
-
-export {};
+export type {
+  AuthResponse,
+  AuthTokens,
+  OrganizerProfile,
+} from './organizer-profile.js';

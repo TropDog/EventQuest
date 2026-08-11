@@ -60,8 +60,41 @@ updated_at
 
 - Organizer is the only registered user role.
 - Email + password authentication is used.
+- `email` is unique at the database level; duplicate registration must be rejected consistently.
+- Email addresses are normalized to lowercase for storage and lookup so duplicate detection is case-insensitive.
 - Passwords must never be stored in plaintext.
 - Organizer can access only events belonging to that organizer.
+- Organizer authentication uses a JWT access token and a refresh-token session.
+- Refresh tokens are persisted as hashes in `OrganizerRefreshToken`.
+- A refresh token has an expiry and can be revoked server-side.
+
+---
+
+## 3. OrganizerRefreshToken
+
+Represents a server-tracked organizer refresh-token session.
+
+### Fields
+
+```text
+id
+organizer_id
+token_hash
+expires_at
+revoked_at
+created_at
+```
+
+### Rules
+
+- Each refresh-token record belongs to exactly one organizer.
+- Only the hash of the refresh token is persisted.
+- The raw refresh token must never be stored in the database.
+- An expired refresh token is rejected.
+- A revoked refresh token is rejected.
+- Logout revokes the refresh-token session presented for that logout operation.
+- Refresh-token persistence is required so the backend can reject revoked refresh tokens.
+- The exact refresh-token transport/DTO shape remains an API-level implementation detail unless explicitly defined elsewhere.
 
 ---
 

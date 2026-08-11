@@ -64,7 +64,8 @@ As an organizer, I want to create an account so that I can own and manage my eve
 - Password is never stored in plaintext.
 - Organizer account is persisted.
 - Invalid registration input is rejected.
-- Duplicate account identity is handled consistently.
+- Organizer email is unique at the database level.
+- Duplicate account identity is rejected consistently.
 
 ---
 
@@ -92,8 +93,11 @@ As an organizer, I want my authenticated session to remain usable without repeat
 ### Acceptance Criteria
 
 - Valid refresh token can obtain a new access token.
-- Invalid/revoked refresh token is rejected.
-- Refresh secrets are not exposed to the frontend.
+- Refresh token is persisted server-side as a hash.
+- Expired refresh token is rejected.
+- Revoked refresh token is rejected.
+- Logout revokes the corresponding refresh-token session.
+- Refresh secrets are not exposed to frontend-readable response payloads.
 
 ---
 

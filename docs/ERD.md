@@ -17,6 +17,7 @@ erDiagram
 
     ORGANIZER_ACCOUNT ||--o{ PACKAGE_PURCHASE : purchases
     ORGANIZER_ACCOUNT ||--o{ EVENT : owns
+    ORGANIZER_ACCOUNT ||--o{ ORGANIZER_REFRESH_TOKEN : has
 
     PACKAGE_PURCHASE ||--|| EVENT : enables
 
@@ -56,12 +57,18 @@ erDiagram
 
 ```text
 id PK
-email
+email UNIQUE
 password_hash
 terms_accepted_at
 created_at
 updated_at
 ```
+
+Constraints:
+
+- `email` is unique.
+- Duplicate organizer registration for the same email is rejected.
+- Passwords are stored only as password hashes.
 
 ### package_purchases
 
@@ -83,6 +90,37 @@ Relationship:
 ```text
 organizer_accounts 1 ── N package_purchases
 ```
+
+---
+
+### organizer_refresh_tokens
+
+```text
+id PK
+organizer_id FK → organizer_accounts.id
+token_hash
+expires_at
+revoked_at nullable
+created_at
+```
+
+Relationship:
+
+```text
+organizer_accounts 1 ── N organizer_refresh_tokens
+```
+
+Constraints:
+
+- `token_hash` must be unique.
+- `organizer_id` is indexed.
+- `expires_at` is indexed.
+- `revoked_at` is nullable.
+- Only the token hash is persisted; the raw refresh token is never stored.
+
+Purpose:
+
+Server-side persistence is required so a refresh token can be revoked on logout and rejected on subsequent refresh attempts.
 
 ---
 

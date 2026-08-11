@@ -178,7 +178,8 @@ Implement:
 - validation,
 - password hashing,
 - account creation,
-- terms acceptance.
+- terms acceptance,
+- database-level unique organizer email handling.
 
 Tests:
 
@@ -186,7 +187,8 @@ Tests:
 - invalid email,
 - invalid password,
 - duplicate account,
-- password not stored plaintext.
+- password not stored plaintext,
+- duplicate email rejected consistently.
 
 ---
 
@@ -213,9 +215,14 @@ Tests:
 
 Implement:
 
-- refresh,
-- logout/revocation strategy,
+- refresh-token persistence using `OrganizerRefreshToken`,
+- refresh-token hashing,
+- refresh-token expiry validation,
+- refresh-token revocation on logout,
+- rejection of revoked/expired refresh tokens,
 - authenticated organizer identity.
+
+The exact refresh-token transport/DTO shape and rotation policy remain API-level implementation details unless separately specified.
 
 ---
 
