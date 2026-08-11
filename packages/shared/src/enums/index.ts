@@ -1,4 +1,4 @@
-// Domain enums will be defined here during Phase 1 — Domain Foundation.
-// See docs/DOMAIN_MODEL.md for the canonical enum definitions.
-
-export {};
+export { EventStatus } from './event-status.enum.js';
+export { GameMode } from './game-mode.enum.js';
+export { TaskType } from './task-type.enum.js';
+export { SpecialEventType } from './special-event-type.enum.js';

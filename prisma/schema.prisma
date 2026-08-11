@@ -7,5 +7,347 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Domain models will be added in Phase 1 — Domain Foundation.
-// See docs/ERD.md and docs/DOMAIN_MODEL.md.
+// ---------------------------------------------------------------------------
+// Enums — values explicitly defined in docs/DOMAIN_MODEL.md
+// ---------------------------------------------------------------------------
+
+enum EventStatus {
+  DRAFT
+  CONFIGURED
+  ACTIVE
+  CLOSED
+  ARCHIVED
+}
+
+enum GameMode {
+  SOLO
+  TEAMS
+}
+
+enum TaskType {
+  QUIZ
+  PHOTO
+  VIDEO
+  TEXT
+  GROUP
+  TIMED
+}
+
+enum SpecialEventType {
+  HAPPY_HOUR
+  FLASH_QUEST
+  GOLDEN_QUEST
+  TEAM_CHALLENGE
+}
+
+// ---------------------------------------------------------------------------
+// Models — based on docs/ERD.md and docs/DOMAIN_MODEL.md
+// RankingSnapshot and AiGeneratedTaskSet are omitted; ERD defers their schema.
+// ---------------------------------------------------------------------------
+
+model OrganizerAccount {
+  id              String   @id @default(cuid())
+  email           String
+  passwordHash    String   @map("password_hash")
+  termsAcceptedAt DateTime @map("terms_accepted_at")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  packagePurchases PackagePurchase[]
+  events           Event[]
+  specialEvents    SpecialEvent[] @relation("SpecialEventOrganizer")
+
+  @@map("organizer_accounts")
+}
+
+model PackagePurchase {
+  id                       String    @id @default(cuid())
+  organizerId              String    @map("organizer_id")
+  packageType              String    @map("package_type")
+  participantLimit         Int?      @map("participant_limit")
+  paymentStatus            String    @map("payment_status")
+  paymentProvider          String?   @map("payment_provider")
+  paymentProviderSessionId String?   @map("payment_provider_session_id")
+  purchasedAt              DateTime? @map("purchased_at")
+  usedAt                   DateTime? @map("used_at")
+  createdAt                DateTime  @default(now()) @map("created_at")
+
+  organizer OrganizerAccount @relation(fields: [organizerId], references: [id])
+  event     Event?
+
+  @@index([organizerId])
+  @@map("package_purchases")
+}
+
+model Event {
+  id                String      @id @default(cuid())
+  organizerId       String      @map("organizer_id")
+  packagePurchaseId String      @unique @map("package_purchase_id")
+  name              String
+  eventType         String      @map("event_type")
+  roomCode          String      @map("room_code")
+  status            EventStatus
+  gameMode          GameMode    @map("game_mode")
+  participantLimit  Int?        @map("participant_limit")
+  startsAt          DateTime?   @map("starts_at")
+  closesAt          DateTime?   @map("closes_at")
+  closedAt          DateTime?   @map("closed_at")
+  createdAt         DateTime    @default(now()) @map("created_at")
+  updatedAt         DateTime    @updatedAt @map("updated_at")
+
+  organizer           OrganizerAccount   @relation(fields: [organizerId], references: [id])
+  packagePurchase     PackagePurchase    @relation(fields: [packagePurchaseId], references: [id])
+  coordinatorAccesses CoordinatorAccess[]
+  players             Player[]
+  teams               Team[]
+  tasks               Task[]
+  taskSubmissions     TaskSubmission[]
+  specialEvents       SpecialEvent[]
+  mediaAssets         MediaAsset[]
+  scoreTransactions   ScoreTransaction[]
+  playerAchievements  PlayerAchievement[]
+  auditLogs           AuditLog[]
+  eventSummary        EventSummary?
+
+  @@index([roomCode])
+  @@index([organizerId])
+  @@map("events")
+}
+
+model CoordinatorAccess {
+  id        String    @id @default(cuid())
+  eventId   String    @map("event_id")
+  tokenHash String    @map("token_hash")
+  isActive  Boolean   @default(true) @map("is_active")
+  expiresAt DateTime? @map("expires_at")
+  revokedAt DateTime? @map("revoked_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  event         Event          @relation(fields: [eventId], references: [id])
+  specialEvents SpecialEvent[] @relation("SpecialEventCoordinator")
+
+  @@index([eventId])
+  @@map("coordinator_accesses")
+}
+
+model Team {
+  id            String   @id @default(cuid())
+  eventId       String   @map("event_id")
+  name          String
+  defaultNumber Int      @map("default_number")
+  maxPlayers    Int      @map("max_players")
+  nameChanged   Boolean  @default(false) @map("name_changed")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  event           Event            @relation(fields: [eventId], references: [id])
+  players         Player[]
+  taskSubmissions TaskSubmission[]
+  scoreTransactions ScoreTransaction[]
+
+  @@index([eventId])
+  @@map("teams")
+}
+
+model Player {
+  id              String    @id @default(cuid())
+  eventId         String    @map("event_id")
+  teamId          String?   @map("team_id")
+  nickname        String
+  avatarUrl       String?   @map("avatar_url")
+  guestTokenHash  String    @map("guest_token_hash")
+  termsAcceptedAt DateTime  @map("terms_accepted_at")
+  joinedAt        DateTime  @map("joined_at")
+  lastSeenAt      DateTime? @map("last_seen_at")
+  createdAt       DateTime  @default(now()) @map("created_at")
+
+  event              Event              @relation(fields: [eventId], references: [id])
+  team               Team?              @relation(fields: [teamId], references: [id])
+  taskSubmissions    TaskSubmission[]
+  mediaAssets        MediaAsset[]
+  scoreTransactions  ScoreTransaction[]
+  playerAchievements PlayerAchievement[]
+
+  @@index([eventId])
+  @@index([teamId])
+  @@map("players")
+}
+
+model Task {
+  id                      String   @id @default(cuid())
+  eventId                 String   @map("event_id")
+  sequenceNumber          Int      @map("sequence_number")
+  title                   String
+  description             String
+  teaser                  String?
+  taskType                TaskType @map("task_type")
+  points                  Int
+  isActive                Boolean  @default(false) @map("is_active")
+  activationStrategy      String   @map("activation_strategy")
+  timeLimitSeconds        Int?     @map("time_limit_seconds")
+  maxSubmissionsPerPlayer Int?     @map("max_submissions_per_player")
+  startsAt                DateTime? @map("starts_at")
+  endsAt                  DateTime? @map("ends_at")
+  createdAt               DateTime @default(now()) @map("created_at")
+  updatedAt               DateTime @updatedAt @map("updated_at")
+
+  event           Event            @relation(fields: [eventId], references: [id])
+  taskSubmissions TaskSubmission[]
+
+  @@unique([eventId, sequenceNumber])
+  @@index([eventId])
+  @@index([sequenceNumber])
+  @@map("tasks")
+}
+
+model TaskSubmission {
+  id             String    @id @default(cuid())
+  eventId        String    @map("event_id")
+  taskId         String    @map("task_id")
+  playerId       String    @map("player_id")
+  teamId         String?   @map("team_id")
+  submissionType TaskType  @map("submission_type")
+  textAnswer     String?   @map("text_answer")
+  quizAnswer     String?   @map("quiz_answer")
+  isCorrect      Boolean?  @map("is_correct")
+  status         String
+  pointsAwarded  Int?      @map("points_awarded")
+  submittedAt    DateTime  @map("submitted_at")
+  createdAt      DateTime  @default(now()) @map("created_at")
+
+  event            Event             @relation(fields: [eventId], references: [id])
+  task             Task              @relation(fields: [taskId], references: [id])
+  player           Player            @relation(fields: [playerId], references: [id])
+  team             Team?             @relation(fields: [teamId], references: [id])
+  mediaAssets      MediaAsset[]
+  scoreTransactions ScoreTransaction[]
+
+  @@index([eventId])
+  @@index([taskId])
+  @@index([playerId])
+  @@map("task_submissions")
+}
+
+model MediaAsset {
+  id               String    @id @default(cuid())
+  eventId          String    @map("event_id")
+  taskSubmissionId String?   @map("task_submission_id")
+  playerId         String    @map("player_id")
+  mediaType        String    @map("media_type")
+  storageKey       String    @map("storage_key")
+  publicUrl        String?   @map("public_url")
+  thumbnailUrl     String?   @map("thumbnail_url")
+  fileSizeBytes    Int       @map("file_size_bytes")
+  durationSeconds  Int?      @map("duration_seconds")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  deletedAt        DateTime? @map("deleted_at")
+
+  event          Event           @relation(fields: [eventId], references: [id])
+  taskSubmission TaskSubmission? @relation(fields: [taskSubmissionId], references: [id])
+  player         Player          @relation(fields: [playerId], references: [id])
+
+  @@index([eventId])
+  @@map("media_assets")
+}
+
+model ScoreTransaction {
+  id               String   @id @default(cuid())
+  eventId          String   @map("event_id")
+  playerId         String?  @map("player_id")
+  teamId           String?  @map("team_id")
+  taskSubmissionId String?  @map("task_submission_id")
+  specialEventId   String?  @map("special_event_id")
+  points           Int
+  reason           String
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  event          Event           @relation(fields: [eventId], references: [id])
+  player         Player?         @relation(fields: [playerId], references: [id])
+  team           Team?           @relation(fields: [teamId], references: [id])
+  taskSubmission TaskSubmission? @relation(fields: [taskSubmissionId], references: [id])
+  specialEvent   SpecialEvent?   @relation(fields: [specialEventId], references: [id])
+
+  @@index([eventId])
+  @@index([playerId])
+  @@index([teamId])
+  @@map("score_transactions")
+}
+
+model Achievement {
+  id          String   @id @default(cuid())
+  code        String   @unique
+  name        String
+  description String
+  icon        String?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  playerAchievements PlayerAchievement[]
+
+  @@map("achievements")
+}
+
+model PlayerAchievement {
+  id            String   @id @default(cuid())
+  eventId       String   @map("event_id")
+  playerId      String   @map("player_id")
+  achievementId String   @map("achievement_id")
+  awardedAt     DateTime @map("awarded_at")
+
+  event       Event       @relation(fields: [eventId], references: [id])
+  player      Player      @relation(fields: [playerId], references: [id])
+  achievement Achievement @relation(fields: [achievementId], references: [id])
+
+  @@unique([eventId, playerId, achievementId])
+  @@map("player_achievements")
+}
+
+model SpecialEvent {
+  id                            String           @id @default(cuid())
+  eventId                       String           @map("event_id")
+  type                          SpecialEventType
+  title                         String
+  description                   String?
+  multiplier                    Int?
+  startsAt                      DateTime         @map("starts_at")
+  endsAt                        DateTime?        @map("ends_at")
+  createdByCoordinatorAccessId  String?          @map("created_by_coordinator_access_id")
+  createdByOrganizerId          String?          @map("created_by_organizer_id")
+  createdAt                     DateTime         @default(now()) @map("created_at")
+
+  event                        Event              @relation(fields: [eventId], references: [id])
+  createdByCoordinatorAccess   CoordinatorAccess? @relation("SpecialEventCoordinator", fields: [createdByCoordinatorAccessId], references: [id])
+  createdByOrganizer           OrganizerAccount?  @relation("SpecialEventOrganizer", fields: [createdByOrganizerId], references: [id])
+  scoreTransactions            ScoreTransaction[]
+
+  @@index([eventId])
+  @@map("special_events")
+}
+
+model EventSummary {
+  id              String    @id @default(cuid())
+  eventId         String    @unique @map("event_id")
+  aiSummaryText   String?   @map("ai_summary_text")
+  reportUrl       String?   @map("report_url")
+  mediaPackageUrl String?   @map("media_package_url")
+  generatedAt     DateTime? @map("generated_at")
+  downloadedAt    DateTime? @map("downloaded_at")
+  createdAt       DateTime  @default(now()) @map("created_at")
+
+  event Event @relation(fields: [eventId], references: [id])
+
+  @@map("event_summaries")
+}
+
+model AuditLog {
+  id           String   @id @default(cuid())
+  eventId      String   @map("event_id")
+  actorType    String   @map("actor_type")
+  actorId      String   @map("actor_id")
+  action       String
+  metadataJson Json?    @map("metadata_json")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  event Event @relation(fields: [eventId], references: [id])
+
+  @@map("audit_logs")
+}
