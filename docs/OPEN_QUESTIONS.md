@@ -30,6 +30,14 @@ Still open:
 - refresh-token rotation policy,
 - exact access/refresh token TTL values as product rules (MVP defaults are environment-configured; see `auth.md` — **Organizer Auth — MVP Implementation Notes**).
 
+Player guest-session join defaults are partially resolved for the SOLO MVP scope; see `players.md` — **Player Guest Session — MVP Implementation Notes**.
+
+Still open for players:
+- exact joinable event statuses as a formal product rule beyond the current `ACTIVE`-only MVP default,
+- guest-session expiry/revocation policy if added beyond the current `Player` model,
+- duplicate-nickname policy if explicitly forbidden later,
+- formal room-code uniqueness enforcement strategy.
+
 ## 2. Exact RankingSnapshot Schema
 
 `RankingSnapshot` is defined as a domain entity and caching mechanism, but the exact physical schema is not fully specified.

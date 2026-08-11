@@ -76,6 +76,110 @@ PATCH /players/me/avatar
 - Player access is limited to the current event/session.
 - Participant limit comes from package configuration.
 
+## Player Guest Session — MVP Implementation Notes
+
+The following choices are documented implementation defaults for the current player guest-session phase (SOLO scope). They are not additional product rules unless explicitly promoted elsewhere.
+
+### Joinable event status
+
+- Source documents require validating that **event status permits joining**, but do not list exact joinable statuses.
+- MVP implementation: only **`ACTIVE`** events accept new player joins.
+- `DRAFT`, `CONFIGURED`, `CLOSED`, and `ARCHIVED` reject new joins with `409 Conflict`.
+
+### Guest session lifetime
+
+- The documented `Player` model stores `guest_token_hash` but does **not** define expiry or revocation fields.
+- MVP implementation: guest sessions remain valid for the lifetime of the `Player` record.
+- Session validation is token hash lookup only; there is no server-side guest-session expiry or logout in this phase.
+
+### Guest session transport
+
+- Subsequent player-authenticated requests use `Authorization: Bearer <guestToken>`.
+- The raw guest token is returned **once** on successful join; only its hash is persisted in `Player.guest_token_hash`.
+
+### Nicknames and rejoin
+
+- Nickname is required on join and cannot be changed afterward (`PATCH /players/me/avatar` does not accept nickname).
+- **Duplicate nicknames within the same event are allowed** unless a future requirement explicitly forbids them.
+- **Rejoin creates a new player**: a new join request always creates a new `Player` record and a new guest token, even when the nickname differs from a prior join. Prior sessions remain valid until removed by a future lifecycle/cleanup rule.
+
+### Team mode deferral
+
+- Team selection belongs to the **Teams** implementation phase.
+- MVP player join supports **SOLO mode fully**.
+- **`TEAMS` mode join is blocked** with `400 Bad Request` until team selection is implemented.
+
+### Room code lookup
+
+- Join resolution uses exact `room_code` string match via indexed lookup.
+- The ERD notes that `room_code` must identify a joinable room; a database-level uniqueness strategy is deferred to the Events module.
+- If multiple events share the same `room_code`, the first matching record is returned — this should be prevented by event creation rules in the Events phase.
+
+### Interim player API contract
+
+Until full DTO specifications are added, the MVP player endpoints use:
+
+**`GET /join/:roomCode` success response:**
+
+```json
+{
+  "event": {
+    "id": "string",
+    "name": "string",
+    "status": "ACTIVE",
+    "gameMode": "SOLO",
+    "participantLimit": 100,
+    "playerCount": 0
+  }
+}
+```
+
+**`POST /events/:eventId/players` request body:**
+
+```json
+{
+  "nickname": "string",
+  "termsAccepted": true,
+  "avatarUrl": "string (optional)"
+}
+```
+
+**`POST /events/:eventId/players` success response:**
+
+```json
+{
+  "player": {
+    "id": "string",
+    "eventId": "string",
+    "teamId": null,
+    "nickname": "string",
+    "avatarUrl": null,
+    "termsAcceptedAt": "ISO-8601 datetime",
+    "joinedAt": "ISO-8601 datetime",
+    "lastSeenAt": null
+  },
+  "guestToken": "string"
+}
+```
+
+**`GET /players/me` success response:** the `player` object shape above (without `guestToken`).
+
+**`PATCH /players/me/avatar` request body:**
+
+```json
+{
+  "avatarUrl": "string | null"
+}
+```
+
+**`PATCH /players/me/avatar` success response:**
+
+```json
+{
+  "player": { "...": "same public player shape as above" }
+}
+```
+
 ## Dependencies
 
 - Auth

@@ -10,3 +10,10 @@ export type {
   ResolveCoordinatorAccessResponse,
   RevokeCoordinatorAccessResponse,
 } from './coordinator-access.js';
+export type {
+  JoinEventContext,
+  JoinEventResponse,
+  PlayerProfile,
+  ResolveJoinResponse,
+  UpdatePlayerAvatarResponse,
+} from './player-profile.js';

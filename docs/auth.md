@@ -76,6 +76,8 @@ Uses an event-scoped guest session token.
 
 Token must be stored as a hash.
 
+Guest-session MVP defaults (SOLO scope) are documented in `players.md` — **Player Guest Session — MVP Implementation Notes**.
+
 ## Security
 
 - Passwords must use bcrypt or argon2.

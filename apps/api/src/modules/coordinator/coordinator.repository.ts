@@ -38,7 +38,7 @@ export class CoordinatorRepository {
   findCoordinatorAccessByHash(
     tokenHash: string,
   ): Promise<(CoordinatorAccess & { event: Event }) | null> {
-    return this.prisma.coordinatorAccess.findFirst({
+    return this.prisma.coordinatorAccess.findUnique({
       where: { tokenHash },
       include: { event: true },
     });
