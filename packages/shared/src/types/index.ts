@@ -17,3 +17,9 @@ export type {
   ResolveJoinResponse,
   UpdatePlayerAvatarResponse,
 } from './player-profile.js';
+export type {
+  CheckoutResponse,
+  PackageDefinition,
+  PackagePurchaseSummary,
+  PaymentWebhookResponse,
+} from './package-purchase.js';

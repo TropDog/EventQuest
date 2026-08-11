@@ -3,9 +3,13 @@ import { ConfigService } from '@nestjs/config';
 import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
+import configuration from './config/configuration';
+import { validateConfiguration } from './config/validate-configuration';
 
 async function bootstrap(): Promise<void> {
-  const app = await NestFactory.create(AppModule);
+  validateConfiguration(configuration());
+
+  const app = await NestFactory.create(AppModule, { rawBody: true });
 
   app.useGlobalPipes(
     new ValidationPipe({
