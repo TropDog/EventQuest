@@ -23,3 +23,13 @@ export type {
   PackagePurchaseSummary,
   PaymentWebhookResponse,
 } from './package-purchase.js';
+export type {
+  CloseEventResponse,
+  CreateEventResponse,
+  EventQrResponse,
+  EventSummary,
+  GetEventResponse,
+  ListEventsResponse,
+  OpenEventResponse,
+  UpdateEventResponse,
+} from './event.js';

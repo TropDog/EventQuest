@@ -10,7 +10,7 @@ import {
 } from '@nestjs/common';
 import { CoordinatorService } from './coordinator.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { EventOwnerGuard } from './guards/event-owner.guard';
+import { EventOwnerGuard } from '../events/guards/event-owner.guard';
 import { CurrentOrganizer } from '../../common/decorators/current-organizer.decorator';
 import type { OrganizerJwtPayload } from '../auth/strategies/jwt.strategy';
 

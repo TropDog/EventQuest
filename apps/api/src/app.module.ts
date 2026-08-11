@@ -8,6 +8,7 @@ import { CoordinatorModule } from './modules/coordinator/coordinator.module';
 import { PlayersModule } from './modules/players/players.module';
 import { PackagesModule } from './modules/packages/packages.module';
 import { PaymentsModule } from './modules/payments/payments.module';
+import { EventsModule } from './modules/events/events.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { PaymentsModule } from './modules/payments/payments.module';
     PlayersModule,
     PackagesModule,
     PaymentsModule,
+    EventsModule,
   ],
 })
 export class AppModule {}

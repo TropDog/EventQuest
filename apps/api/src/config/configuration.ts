@@ -20,6 +20,10 @@ export interface AppConfiguration {
     checkoutSuccessUrl: string;
     checkoutCancelUrl: string;
   };
+  app: {
+    frontendBaseUrl: string;
+    eventAutoCloseDays: number;
+  };
 }
 
 export default (): AppConfiguration => ({
@@ -51,5 +55,13 @@ export default (): AppConfiguration => ({
     checkoutCancelUrl:
       process.env.PAYMENTS_CHECKOUT_CANCEL_URL ??
       'http://localhost:3000/packages?checkout=cancelled',
+  },
+  app: {
+    frontendBaseUrl:
+      process.env.FRONTEND_BASE_URL ?? 'http://localhost:3000',
+    eventAutoCloseDays: parseInt(
+      process.env.EVENT_AUTO_CLOSE_DAYS ?? '7',
+      10,
+    ),
   },
 });

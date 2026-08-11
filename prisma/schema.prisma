@@ -102,7 +102,7 @@ model Event {
   packagePurchaseId String      @unique @map("package_purchase_id")
   name              String
   eventType         String      @map("event_type")
-  roomCode          String      @map("room_code")
+  roomCode          String      @unique @map("room_code")
   status            EventStatus
   gameMode          GameMode    @map("game_mode")
   participantLimit  Int?        @map("participant_limit")
